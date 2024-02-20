@@ -27,8 +27,28 @@ class _GroceryListState extends State<GroceryList> {
     }
   }
 
+  void _removeItem(GroceryItemModel.GroceryItem item) {
+    setState(() {
+      _groceryItems.remove(item);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    Widget content = const Center(
+      child: Text('Your list is empty!'),
+    );
+
+    if (_groceryItems.isNotEmpty) {
+      content = ListView.builder(
+        itemCount: _groceryItems.length,
+        itemBuilder: (ctx, index) => GroceryItem(
+          groceryItem: _groceryItems[index],
+          removeItem: _removeItem,
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Grocery List'),
@@ -39,11 +59,7 @@ class _GroceryListState extends State<GroceryList> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: _groceryItems.length,
-        itemBuilder: (ctx, index) =>
-            GroceryItem(groceryItem: _groceryItems[index]),
-      ),
+      body: content,
     );
   }
 }
