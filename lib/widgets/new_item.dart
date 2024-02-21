@@ -53,8 +53,6 @@ class _NewItemState extends State<NewItem> {
         }),
       );
 
-      print(response.statusCode);
-
       final Map<String, dynamic> data = json.decode(response.body);
 
       if (!context.mounted) {

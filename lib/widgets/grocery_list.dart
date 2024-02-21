@@ -20,37 +20,51 @@ class _GroceryListState extends State<GroceryList> {
   String? _error;
 
   void _loadItems() async {
-    final url = Uri.https('shopping-list-39ea4-default-rtdb.firebaseio.com',
-        'shopping-list.json');
-    final response = await http.get(url);
+    try {
+      final url = Uri.https('shopping-list-39ea4-default-rtdb.firebaseio.com',
+          'shopping-list.json');
+      final response = await http.get(url);
+      if (response.statusCode != 200) {
+        setState(() {
+          _error = 'Failed to fetch data. Please try again later.';
+        });
+        return;
+      }
 
-    if (response.statusCode != 200) {
+      // 'null' is the specific response from Firebase when the list is empty.'
+      // different service or BE might have different response
+      if (response.body == 'null') {
+        setState(() {
+          _isReady = true;
+        });
+        return;
+      }
+
+      final Map<String, dynamic> data = json.decode(response.body);
+      final List<GroceryItemModel.GroceryItem> items = [];
+      for (final item in data.entries) {
+        final category = categories.entries
+            .firstWhere((cat) => cat.value.name == item.value['category'])
+            .value;
+        items.add(
+          GroceryItemModel.GroceryItem(
+            id: item.key,
+            name: item.value['name'],
+            quantity: item.value['quantity'],
+            category: category,
+          ),
+        );
+      }
+
       setState(() {
-        _error = 'Failed to fetch data. Please try again later.';
+        _groceryItems = items;
+        _isReady = true;
       });
-      return;
+    } catch (err) {
+      setState(() {
+        _error = 'Something went wrong. Please try again later.\n\n $err';
+      });
     }
-
-    final Map<String, dynamic> data = json.decode(response.body);
-    final List<GroceryItemModel.GroceryItem> items = [];
-    for (final item in data.entries) {
-      final category = categories.entries
-          .firstWhere((cat) => cat.value.name == item.value['category'])
-          .value;
-      items.add(
-        GroceryItemModel.GroceryItem(
-          id: item.key,
-          name: item.value['name'],
-          quantity: item.value['quantity'],
-          category: category,
-        ),
-      );
-    }
-
-    setState(() {
-      _groceryItems = items;
-      _isReady = true;
-    });
   }
 
   @override
@@ -103,6 +117,17 @@ class _GroceryListState extends State<GroceryList> {
       setState(() {
         _groceryItems.insert(index, item);
       });
+
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to delete item. Please try again later.'),
+        ),
+      );
     }
   }
 
