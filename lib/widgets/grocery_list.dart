@@ -16,6 +16,7 @@ class GroceryList extends StatefulWidget {
 
 class _GroceryListState extends State<GroceryList> {
   List<GroceryItemModel.GroceryItem> _groceryItems = [];
+  bool _isReady = false;
 
   void _loadItems() async {
     final url = Uri.https('shopping-list-39ea4-default-rtdb.firebaseio.com',
@@ -39,6 +40,7 @@ class _GroceryListState extends State<GroceryList> {
 
     setState(() {
       _groceryItems = items;
+      _isReady = true;
     });
   }
 
@@ -85,6 +87,12 @@ class _GroceryListState extends State<GroceryList> {
     Widget content = const Center(
       child: Text('Your list is empty!'),
     );
+
+    if (!_isReady) {
+      content = const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
 
     if (_groceryItems.isNotEmpty) {
       content = ListView.builder(
