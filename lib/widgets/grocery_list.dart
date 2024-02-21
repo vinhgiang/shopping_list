@@ -61,13 +61,17 @@ class _GroceryListState extends State<GroceryList> {
     //   });
     // }
 
-    await Navigator.of(context).push(
+    final recentlyAddedItem = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (ctx) => const NewItem(),
       ),
     );
 
-    _loadItems();
+    if (recentlyAddedItem != null) {
+      setState(() {
+        _groceryItems.add(recentlyAddedItem);
+      });
+    }
   }
 
   void _removeItem(GroceryItemModel.GroceryItem item) {
