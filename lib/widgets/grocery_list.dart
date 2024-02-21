@@ -17,11 +17,20 @@ class GroceryList extends StatefulWidget {
 class _GroceryListState extends State<GroceryList> {
   List<GroceryItemModel.GroceryItem> _groceryItems = [];
   bool _isReady = false;
+  String? _error;
 
   void _loadItems() async {
     final url = Uri.https('shopping-list-39ea4-default-rtdb.firebaseio.com',
         'shopping-list.json');
     final response = await http.get(url);
+
+    if (response.statusCode != 200) {
+      setState(() {
+        _error = 'Failed to fetch data. Please try again later.';
+      });
+      return;
+    }
+
     final Map<String, dynamic> data = json.decode(response.body);
     final List<GroceryItemModel.GroceryItem> items = [];
     for (final item in data.entries) {
@@ -101,6 +110,12 @@ class _GroceryListState extends State<GroceryList> {
           groceryItem: _groceryItems[index],
           removeItem: _removeItem,
         ),
+      );
+    }
+
+    if (_error != null) {
+      content = Center(
+        child: Text(_error!),
       );
     }
 
